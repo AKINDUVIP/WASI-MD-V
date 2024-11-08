@@ -1,0 +1,39 @@
+const { spawnSync } = require('child_process')
+const { existsSync, writeFileSync } = require('fs')
+
+const SESSION_ID = 'eyJub2lzZUtleSI6eyJwcml2YXRlIjp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoibUNxYXR2VmxGeEJJQ3VsNXZYckFpTm41b2tLYXhRQm5TcmE4TlZKVHlFUT0ifSwicHVibGljIjp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoiZmpodGZTSGpGV1l5czRvek1hUnRMRitJdjhXUUNodGNmV25vSXZpb3hRUT0ifX0sInBhaXJpbmdFcGhlbWVyYWxLZXlQYWlyIjp7InByaXZhdGUiOnsidHlwZSI6IkJ1ZmZlciIsImRhdGEiOiJhTnJJR3VmQ3h2emtYQU5FMzlZa3REcXRyQTd4OEJIeis3ZkhwZFpycEZFPSJ9LCJwdWJsaWMiOnsidHlwZSI6IkJ1ZmZlciIsImRhdGEiOiJZMERmZFp5RGs5ZUYxZ3k4Y0tZaFh2anFKMEZhN2piUzFlVFhtRDFKbWxRPSJ9fSwic2lnbmVkSWRlbnRpdHlLZXkiOnsicHJpdmF0ZSI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6IlVHWlFucldHeWhXOEo0M1FnZjN3c2srUCtnMGl3eG1UeG5XYUpEdk5qSEk9In0sInB1YmxpYyI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6Ik1rb0RSQXhuNWhORHBUVHdPK3c2VmhTTTRLRG9IdThRWEwweXNrQ1BXbUk9In19LCJzaWduZWRQcmVLZXkiOnsia2V5UGFpciI6eyJwcml2YXRlIjp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoiME82M3oxQ2IyTlZENDZUUVpoc3FyY08yMHZrVFBsUmkzcGxZNElRSThIUT0ifSwicHVibGljIjp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoiMFpGbGtsRFNsQjU2NUFXNWNaOW96cWoxNVA0cU96VkRuUkJVVzZMenJocz0ifX0sInNpZ25hdHVyZSI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6IkxodVB0aWxqQ0ovNW9sbENoN0xnNCsvVmFMUFBLTTFuTXFwTkRVZjhESkQyWUcwVW9CeDVWR1FDYlpndmlGazdDNTJTVXZBOGxtVmcyZ2FRUlUwWGdBPT0ifSwia2V5SWQiOjF9LCJyZWdpc3RyYXRpb25JZCI6MTMsImFkdlNlY3JldEtleSI6IkRXWFlWbDBtUzJuSmNHdndOeTdFeGxoOC82NFI0YzUvcTkyNmpqdE42NUU9IiwicHJvY2Vzc2VkSGlzdG9yeU1lc3NhZ2VzIjpbXSwibmV4dFByZUtleUlkIjozMSwiZmlyc3RVbnVwbG9hZGVkUHJlS2V5SWQiOjMxLCJhY2NvdW50U3luY0NvdW50ZXIiOjAsImFjY291bnRTZXR0aW5ncyI6eyJ1bmFyY2hpdmVDaGF0cyI6ZmFsc2V9LCJkZXZpY2VJZCI6IllwTld4bDZUVC1PYV9pbWVNQzE5UlEiLCJwaG9uZUlkIjoiYjI0ZDE4ZDgtMDFjOS00NDY0LWJkMDQtNGMzYWE0YmNhNTc3IiwiaWRlbnRpdHlJZCI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6InZFL3BibzhQZlBlRDZZaDZ5N3c4MWtnM2hmWT0ifSwicmVnaXN0ZXJlZCI6dHJ1ZSwiYmFja3VwVG9rZW4iOnsidHlwZSI6IkJ1ZmZlciIsImRhdGEiOiJGWDRvc0VZcC9rOUMwektycVZqejVXUWZOTzA9In0sInJlZ2lzdHJhdGlvbiI6e30sInBhaXJpbmdDb2RlIjoiUkpGTjFEOFoiLCJtZSI6eyJpZCI6Ijk0NzE5ODg4MjczOjIzQHMud2hhdHNhcHAubmV0IiwibmFtZSI6IuG0gOG0i8mqybThtIXhtJwifSwiYWNjb3VudCI6eyJkZXRhaWxzIjoiQ0lqbm9OOENFUEtPdDdrR0dBRWdBQ2dBIiwiYWNjb3VudFNpZ25hdHVyZUtleSI6Ii9CQ0s4ZmpPTzdMM3pINy9TMmdRZDU3TDIvTW04TFB2NkM4bms2U0QyaHM9IiwiYWNjb3VudFNpZ25hdHVyZSI6IjZXV2I3TjNZQkx5NXNnNUdMOHF1ejZDZ2JOS2dQT2JqQUN5c0c4Q3FPeFlUVWF2M3VEVWIxZ25QQTE0UW93OFNyZnhqSHovQTdNaHh4NTc1dnUwbUJRPT0iLCJkZXZpY2VTaWduYXR1cmUiOiJlc2dwRjA1Q1FmeHRkVnAwc1pLNEdzcFAvWTNzUzAwcGJsVWZuWkdpaFN0RUtGWGtjSUU3OGlLam1WNWVSM3VGZ3FqZHMva2pKOGhkVWdGd1J0cUFoQT09In0sInNpZ25hbElkZW50aXRpZXMiOlt7ImlkZW50aWZpZXIiOnsibmFtZSI6Ijk0NzE5ODg4MjczOjIzQHMud2hhdHNhcHAubmV0IiwiZGV2aWNlSWQiOjB9LCJpZGVudGlmaWVyS2V5Ijp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoiQmZ3UWl2SDR6anV5OTh4Ky8wdG9FSGVleTl2ekp2Q3o3K2d2SjVPa2c5b2IifX1dLCJwbGF0Zm9ybSI6InNtYmEiLCJsYXN0QWNjb3VudFN5bmNUaW1lc3RhbXAiOjE3MzEwNTM0Mzl9' // Edit this line only, don't remove ' <- this symbol
+
+if (!existsSync('Itxxwasi')) {
+  console.log('Cloning the repository...')
+  const cloneResult = spawnSync(
+    'git',
+    ['clone', 'https://github.com/Itxxwasi/WASI-MD-V.git', 'Itxxwasi'],
+    {
+      stdio: 'inherit',
+    }
+  )
+
+  if (cloneResult.error) {
+    throw new Error(`Failed to clone the repository: ${cloneResult.error.message}`)
+  }
+
+  const configPath = 'Itxxwasi/config.env'
+  try {
+    console.log('Writing to config.env...')
+    writeFileSync(configPath, `VPS=true\nSESSION_ID=${SESSION_ID}`)
+  } catch (err) {
+    throw new Error(`Failed to write to config.env: ${err.message}`)
+  }
+
+  console.log('Installing dependencies...')
+  const installResult = spawnSync('yarn', ['install', '--network-concurrency', '3'], {
+    cwd: 'Itxxwasi',
+    stdio: 'inherit',
+  })
+
+  if (installResult.error) {
+    throw new Error(`Failed to install dependencies: ${installResult.error.message}`)
+  }
+}
+
+spawnSync('yarn', ['start'], { cwd: 'Itxxwasi', stdio: 'inherit' })
